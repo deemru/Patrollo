@@ -65,6 +65,7 @@ for( $height = 0;; )
         else
         {
             unset( $id );
+            unset( $hyper );
             $sender = $tx['sender'];
             $game->log( 'i', "lastPayment changed ($sender)" );
             sendPatrolloReport( 'lastPayment changed', "https://wavesexplorer.com/address/$sender" );
@@ -144,8 +145,16 @@ for( $height = 0;; )
 
     if( $blocksFTW <= $threshold && $lastPayment !== $id )
     {
+        if( !isset( $hyper ) )
+        {
+            $game->log( 'i', "Almost lose! But wait 29 second more to maximize Patrollo effect..." );
+            $hyper = true;
+            sleep( 29 );
+            continue;
+        }
+
         $game->log( 'i', "Making bet" );
-        $tx = $game->txBroadcast( $patrollo->txSign( $game->txData( [ 'heightToGetMoney' => $height + 60, 'lastPayment' => $id, $id => 'Patrollo' ], [ 'fee' => 10000000 ] ) ) );
+        $tx = $game->txBroadcast( $patrollo->txSign( $game->txData( [ 'heightToGetMoney' => $height + 57, 'lastPayment' => $id, $id => 'Patrollo' ], [ 'fee' => 10000000 ] ) ) );
         if( $tx === false )
         {
             $game->log( 'e', "Making bet failed" );
@@ -161,6 +170,7 @@ for( $height = 0;; )
         sendPatrolloReport( 'Bet done', $id );
 
         unset( $id );
+        unset( $hyper );
         $ids = array_slice( $ids, 1 );
         file_put_contents( $file, json_encode( $ids ) );
         $game->log( 'i', "relax (for 1 min)..." );
